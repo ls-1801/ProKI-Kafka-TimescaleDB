@@ -1,0 +1,1 @@
+{"subject":"chair1.bigmachine-value","version":"1","id":1,"schema":"{\"type\":\"record\",\"name\":\"BigMachine\",\"fields\":[{\"name\":\"time\",\"type\":{\"type\":\"long\",\"logicalType\":\"time-micros\"}},{\"name\":\"x\",\"type\":\"long\"},{\"name\":\"y\",\"type\":\"long\"},{\"name\":\"z\",\"type\":\"long\"}]}","compatibilityLevel":"BACKWARD","schemaType":"AVRO"}

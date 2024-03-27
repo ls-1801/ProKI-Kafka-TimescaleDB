@@ -1,75 +1,84 @@
-from confluent_kafka import Producer
+#!/usr/bin/env python
+from datetime import datetime
 import random
+from confluent_kafka import Producer, avro
+from confluent_kafka import Producer
+from confluent_kafka.serialization import StringSerializer, SerializationContext, MessageField
+from confluent_kafka.schema_registry import SchemaRegistryClient
+from confluent_kafka.schema_registry.avro import AvroSerializer
 import time
-import json
+from uuid import uuid4
+import numpy as np
 
-# Kafka broker address
-bootstrap_servers = 'localhost:9092'
-
-# Kafka topic to produce messages to
-kafka_topic = 'chair1.bigmachine'
-
-# Create Kafka Producer instance configuration
-producer_conf = {
-    'bootstrap.servers': bootstrap_servers
+# Avro schema definition (replace with your specific data types if needed)
+schema_str = """
+{
+	"type": "record",
+	"name": "BigMachine",
+	"fields": [
+		{"name": "time", "type": {"type" : "long", "logicalType": "time-micros" }},
+		{"name": "x", "type": "long"},
+		{"name": "y", "type": "long"},
+		{"name": "z", "type": "long"}
+	]
 }
+"""
 
-# Create Kafka Producer
-producer = Producer(producer_conf)
+# Kafka producer configuration with bootstrap servers
+producer = Producer({
+  'bootstrap.servers': 'localhost:9092',
+})
+topic = "chair1.bigmachine"
 
-
-# Function to generate random message
-def generate_random_message():
-    number_of_samples = int(random.uniform(180, 320))
-    base_time = time.time()
-    start_perf = time.perf_counter()
-    tuples = []
-    for i in range(number_of_samples):
-        tuples.append({'timestamp': base_time + (time.perf_counter() - start_perf),
-                       'x': (1664525 * (i * 3 + 1) + 1013904223) % 100, 'y': (1664525 * (i * 3 + 2) + 1013904223) % 100,
-                       'z': (1664525 * (i * 3 + 3) + 1013904223) % 100, "event": "data"})
-
-    return json.dumps(tuples)
+class Measurement:
+  def __init__(self, x,y,z):
+    self.time = np.datetime64(datetime.now()).view('<i8')
+    self.x = x 
+    self.y = y 
+    self.z = z 
 
 
-# Function to delivery report callback
-def delivery_report(err, msg):
-    if err is not None:
-        print(f'Message delivery failed: {err}')
-    else:
-        print(f'Message delivered to {msg.topic()} [{msg.partition()}]')
+def measurement_to_dict(measurement, ctx):
+  return dict(time=measurement.time, x=measurement.x, y=measurement.y, z = measurement.z)
+
+schema_registry_conf = {'url': 'http://localhost:8085'}
+schema_registry_client = SchemaRegistryClient(schema_registry_conf)
+
+avro_serializer = AvroSerializer(schema_registry_client,
+                                 schema_str, measurement_to_dict)
+string_serializer = StringSerializer('utf_8')
+
+# Sensor data generation function (replace with your sensor data logic)
+def generate_sensor_data():
+  x = random.random() * 10  # Replace with your sensor data generation for x
+  y = random.random() * 10  # Replace with your sensor data generation for y
+  z = random.random() * 10  # Replace with your sensor data generation for z
+  return Measurement(x,y,z)
 
 
-def stop_experiment():
-    message = json.dumps({'timestamp': time.time(), 'event': 'stop'})
-    producer.produce(kafka_topic, message.encode('utf-8'), callback=delivery_report)
+def call_n_times_per_second(fn,cb, n):
+  while True:
+    last_timestamp = time.perf_counter()
+    for i in range(n):
+      fn()
+    
+    cb()
+    new_timestamp = time.perf_counter()
+    time.sleep(max(1 - (new_timestamp - last_timestamp), 0))
+  
 
 
-def start_experiment():
-    message = json.dumps({'timestamp': time.time(), 'event': 'start'})
-    producer.produce(kafka_topic, message.encode('utf-8'), callback=delivery_report)
-
-
-# Produce random messages
-try:
-    while True:
-        # Generate random message
-        start_experiment()
-        number_of_measurements = random.randint(10000, 20000)
-
-        for _ in range(number_of_measurements):
-            message = generate_random_message()
-            # Produce message to Kafka topic
-            producer.produce(kafka_topic, message.encode('utf-8'), callback=delivery_report)
-            time.sleep(random.uniform(0.001, 0.01))
-
-        stop_experiment()
-        # Flush messages to ensure delivery
-        producer.flush()
-
-        # Sleep for a random interval
-        time.sleep(random.uniform(2, 4))
-except KeyboardInterrupt:
-    # Clean up resources on keyboard interrupt
+def flush():
     producer.flush()
-    producer.close()
+
+def do_the_thing():
+  data = generate_sensor_data()
+  try:
+    producer.produce(topic=topic,
+                   key=string_serializer(str(uuid4())),
+                   value=avro_serializer(data, SerializationContext(topic, MessageField.VALUE)))
+
+  except BufferError:
+    producer.flush()
+
+call_n_times_per_second(do_the_thing, flush, 30_000)
