@@ -81,4 +81,4 @@ def do_the_thing():
   except BufferError:
     producer.flush()
 
-call_n_times_per_second(do_the_thing, flush, 30_000)
+call_n_times_per_second(do_the_thing, flush, 10_000)
