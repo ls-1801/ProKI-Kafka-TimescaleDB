@@ -1,8 +1,6 @@
-version: '3'
-
 services:
   kafka:
-    image: wurstmeister/kafka:2.13-2.8.1
+    image: bitnami/kafka:latest
     ports:
       - "9092:9092"
     environment:
@@ -108,7 +106,9 @@ services:
       - kafka-ui
   
   zookeeper:
-    image: wurstmeister/zookeeper:3.4.6
+    image: bitnami/zookeeper:latest
+    environment:
+      ALLOW_ANONYMOUS_LOGIN: 1
     ports:
       - "2181:2181"
   
