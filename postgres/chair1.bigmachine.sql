@@ -6,9 +6,9 @@ ALTER ROLE grafana_chair1 SET search_path = 'chair1';
 -- We start by creating a regular SQL table
 CREATE TABLE chair1.bigmachine (
   time        	TIMESTAMP(6)    NOT NULL,
-  x   		BIGINT          NOT NULL,
-  y 		BIGINT          NOT NULL,
-  z    		BIGINT  	NOT NULL
+  x   		      BIGINT          NOT NULL,
+  y 		        BIGINT          NOT NULL,
+  z    		      BIGINT  	      NOT NULL
 );
 GRANT SELECT ON chair1.bigmachine TO grafana_chair1;
 

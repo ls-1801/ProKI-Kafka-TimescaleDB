@@ -1,34 +1,34 @@
-# ProKI-Kafka-Influxdb
+# ProKI-Kafka-TimescaleDb
 
-Setup is based on docker-compose
+The setup is based on docker-compose
 
-to launch:
+To launch:
 > docker compose up
 
+The Kafka UI is available via port 8080. Grafana via port 3000.
+
+The `producer.py` produces tuples matching the prototype schema (which has a timestamp and xyz coordinates).
+It requires the following Python packages to be installed:
+```
+confluent_kafka
+confluent_avro
+avro
+numpy
+```
 
 ## Initial launch
 
-Kafka topic is created by the docker-compose kafka-init service.
+Kafka topic is created by the docker-compose kafka-init service. `kafka-init/chair1.bigmachine.sh` creates a Kafka topic with a schema and creates a Kafka-connector, which moves data from Kafka into timescaleDB. The number of topic partitions and connector tasks can be configured based on the expected workload.
 
-Influxdb needs to be setup, either manually using the web interface at localhost:8086 or using the setup influxdb scripts
+The timescale database is initialized when the timescale container is launched for the first time (or its volume is removed). The `postgres/chair1.bigmachine.sql` creates the Table Schema for the prototype machine.
 
-> docker run -e USERNAME=USERNAME -e PASSWORD=PASSWORD -v $(pwd):/scripts --net=proki_default influxdb:latest /scripts/influx_setup.sh | jq .token
+# Known Problems
 
-Make sure to copy the token. The org will be called proki.
+## Timezones
 
-Vector expects the example bucket to exist. to create the example bucket you can either use the web interface or use the script. You need to provide the operator-token and the org name and choose a bucket name.
+At some point, the timestamp value created by `producer.py` is assigned to a timezone that is different from the actual timezone. 
+Instead of fixing the root of the problem, the grafana queries shift all timestamps by 2 hours.
 
-> docker run -it -v $(pwd):/scripts --net=proki_default influxdb:latest /scripts/create_influx_token.sh \
->   OPERATOR_TOKEN ORG_NAME BUCKET_NAME
+## Initial Grafana load
 
-Make sure to copy the bucket-write token and the organisation id.
-> "write:orgs/ORG_ID/buckets/BUCKET_ID"
-
-Lastly you need to update the vector.toml with the bucket-write token (not the operator-token) and the organisation id.
-
-
-
-
-
-
-
+Grafana does not display the example panels out of the box. You need to click the `edit` button in each panel and manually run the query for Grafana to show data on the dashboard.
