@@ -1,7 +1,7 @@
 {
-	"name": "jdbc-connector",
+	"name": "chair1-smallmachine-jdbc-connector",
 	"config": {
-		"topics": "chair1.bigmachine",
+		"topics": "chair1.smallmachine",
 		"connector.class": "io.confluent.connect.jdbc.JdbcSinkConnector",
 		"connection.url": "jdbc:postgresql://timescaledb:5432/proki",
 		"connection.user": "proki",
@@ -14,6 +14,6 @@
 		"transforms.TimestampConverter.target.type": "Timestamp",
 		"batch.size": 20000,
 		"db.timezone": "Europe/Berlin",
-		"tasks.max": 6
+		"tasks.max": 4
 	}
 }

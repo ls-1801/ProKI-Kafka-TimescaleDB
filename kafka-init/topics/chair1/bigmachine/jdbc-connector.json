@@ -1,0 +1,19 @@
+{
+	"name": "chair1-bigmachine-jdbc-connector",
+	"config": {
+		"topics": "chair1.bigmachine",
+		"connector.class": "io.confluent.connect.jdbc.JdbcSinkConnector",
+		"connection.url": "jdbc:postgresql://timescaledb:5432/proki",
+		"connection.user": "proki",
+		"connection.password": "secret",
+		"pk.mode": "none",
+		"transforms": "TimestampConverter",
+		"transforms.TimestampConverter.type": "org.apache.kafka.connect.transforms.TimestampConverter$Value",
+		"transforms.TimestampConverter.unix.precision": "microseconds",
+		"transforms.TimestampConverter.field": "time",
+		"transforms.TimestampConverter.target.type": "Timestamp",
+		"batch.size": 20000,
+		"db.timezone": "Europe/Berlin",
+		"tasks.max": 6
+	}
+}

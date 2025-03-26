@@ -1,7 +1,10 @@
 #!/bin/bash
 
 sleep 30
-for f in *.sh; do
+find /topics -name '*.sh' -print0 | while IFS= read -r -d $'\0' f; do
   echo "Running $f"
-  bash "$f" 
+  (
+    cd "$(dirname "$f")"
+    bash "$(basename "$f")"
+  )
 done
