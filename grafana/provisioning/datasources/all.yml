@@ -4,9 +4,9 @@ datasources:
   - name: chair1
     type: postgres
     url: timescaledb:5432
+    uid: chair1_timescale_datasource
     database: proki
     user: grafana_chair1
-    isDefault: true
     secureJsonData:
       password: "grafana"
     jsonData:
@@ -17,3 +17,19 @@ datasources:
       postgresVersion: 903    # 903=9.3, 904=9.4, 905=9.5, 906=9.6, 1000=10
       timescaledb: true
       minTimeInterval: "1s"
+  - name: chair2
+    type: postgres
+    url: timescaledb:5432
+    uid: chair2_timescale_datasource
+    database: proki
+    user: grafana_chair2
+    secureJsonData:
+      password: "grafana"
+    jsonData:
+      sslmode: "disable"      # disable/require/verify-ca/verify-full
+      maxOpenConns: 0         # Grafana v5.4+
+      maxIdleConns: 2         # Grafana v5.4+
+      connMaxLifetime: 14400  # Grafana v5.4+
+      postgresVersion: 903    # 903=9.3, 904=9.4, 905=9.5, 906=9.6, 1000=10
+      timescaledb: true
+      minTimeInterval: "1s"      
